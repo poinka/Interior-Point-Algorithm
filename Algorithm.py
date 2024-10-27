@@ -25,8 +25,8 @@ def matrix_multiply(A, B):
                 result[i][j] += A[i][k] * B[k][j]
 
     # If the result is a matrix with one column, flatten it to a vector
-    if cols_B == 1:
-        result = [result[i][0] for i in range(rows_A)]
+    # if cols_B == 1:
+    #     result = [result[i][0] for i in range(rows_A)]
 
     return result
 
@@ -87,7 +87,10 @@ def ones(n, k):
 
 
 def multiply_by_num(num, matrix):
-    return [[num * matrix[i][j] for j in range(len(matrix[0]))] for i in range(len(matrix))]
+    if isinstance(matrix[0], list):
+        return [[num * matrix[i][j] for j in range(len(matrix[0]))] for i in range(len(matrix))]
+    else:
+        return [num * matrix[i] for i in range(len(matrix))]
 
 
 def max_abs_difference(x_new, x_old):
@@ -105,24 +108,23 @@ def check_feasibility(A, x, b):
     return True
 
 
-c = [1, 1, 0, 0]
+c = [2, 3, -1, 0, 0, 0]
 c = transpose([c])
-A = [[2, 4, 1, 0], [1, 3, 0, -1]]
-b = [16, 9]
+A = [[2, 1, -2, 1, 0, 0], [3, 2, 1, 0, 1, 0], [-1, 3, 4, 0, 0, 1]]
+b = [16, 18, 24]
 b = transpose([b])
-x_0 = [1, 1, 10, -5]
+x_0 = [1, 1, 1, 17, 174, 169]
 # x_0 = [-9, 6, 10, 0]
 alpha = 0.5
-epsilon = 1e-6  # Approximation accuracy
+epsilon = 0.00001  # Approximation accuracy
 
 print(c, A, b, transpose([x_0]), alpha)
 print(matrix_multiply(A, x_0))
 
 # Ensure x is a column vector
 x = [[xi] for xi in x_0]
+print(c)
 # Ensure c is a column vector
-c = [[ci] for ci in c]
-
 if matrix_multiply(A, x) == b or check_feasibility(A, x, b):
     iteration = 0
     solved = False
@@ -132,12 +134,16 @@ if matrix_multiply(A, x) == b or check_feasibility(A, x, b):
         print(f"Iteration {iteration}")
         
         # Step 1: D = diag(x)
-        x_vector = [xi[0] for xi in x]
+        x_vector = [i[0] for i in x]
+        print("x", x_vector)
         D = diag(x_vector)
+        print("D", D)
         # Step 2: Compute A_tilde = A * D
         A_tilde = matrix_multiply(A, D)
+        print("A_Tilde", A_tilde)
         # Step 3: Compute c_tilde = D * c
         c_tilde = matrix_multiply(D, c)
+        print("c_Tilde", c_tilde)
         # Step 4: Compute P = I - A_tilde^T * (A_tilde * A_tilde^T)^-1 * A_tilde
         A_tilde_T = transpose(A_tilde)
         A_tilde_A_tilde_T = matrix_multiply(A_tilde, A_tilde_T)
@@ -149,11 +155,13 @@ if matrix_multiply(A, x) == b or check_feasibility(A, x, b):
         Middle_term = matrix_multiply(A_tilde_T, Inv_A_tilde_A_tilde_T)
         Middle_term = matrix_multiply(Middle_term, A_tilde)
         P = matrix_difference(identity(len(x_vector)), Middle_term)
+        print("P", P)
         # Step 5: Compute c_p = P * c_tilde
         c_p = matrix_multiply(P, c_tilde)
+        print("c_p", c_p)
         # Step 6: Compute v = |min{c_p_i | c_p_i < 0}|
-        c_p_flat = [c_p[i][0] for i in range(len(c_p))]
-        negative_c_p = [cpi for cpi in c_p_flat if cpi < 0]
+        cp_flat = [i[0] for i in c_p]
+        negative_c_p = [cpi for cpi in cp_flat if cpi < 0]
         if negative_c_p:
             v = abs(min(negative_c_p))
         else:
