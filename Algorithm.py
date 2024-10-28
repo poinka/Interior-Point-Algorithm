@@ -100,7 +100,7 @@ def max_abs_difference(x_new, x_old):
 def check_feasibility(A, x, b):
     Ax = matrix_multiply(A, x)
     for i in range(len(Ax)):
-        if abs(Ax[i] - b[i][0]) > 1e-6:
+        if abs(Ax[i][0] - b[i][0]) > 1e-6:
             return False
     for xi in x:
         if xi[0] <= 0:
@@ -179,10 +179,14 @@ if matrix_multiply(A, x) == b or check_feasibility(A, x, b):
             solved = True
             x_star = x_new
             print("Optimal solution found:")
-            print([x_star[i][0] for i in range(len(x_star))])
+            
+            # Format the output for x_star
+            formatted_x_star = ', '.join(f'x[{i}] = {x_star[i][0]:.4f}' for i in range(len(x_star)))
+            print(f'Optimal values: {formatted_x_star}')
+            
             # Compute objective function value
             z = sum([c[i][0] * x_star[i][0] for i in range(len(c))])
-            print(f"Objective function value: {z}")
+            print(f'Objective function value: {z:.4f}')
             break
         else:
             x = x_new
