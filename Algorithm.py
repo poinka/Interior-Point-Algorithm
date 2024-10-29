@@ -101,6 +101,7 @@ def check_feasibility(A, x, b):
     Ax = matrix_multiply(A, x)
     for i in range(len(Ax)):
         if abs(Ax[i][0] - b[i][0]) > 0.0001:
+        if abs(Ax[i][0] - b[i][0]) > 0.0001:
             return False
     for xi in x:
         if xi[0] <= 0:
@@ -108,6 +109,37 @@ def check_feasibility(A, x, b):
     return True
 
 
+def set_initial_solution(A, b):
+    x = [0] * len(A[0])
+    for i in range(len(A[0]) - len(b)):
+        x[i] = 1
+    j = len(A[0]) - len(b)
+    for i in range(len(A)):
+        x[j + i] = b[i] - sum(A[i]) + 1
+    return x
+
+def handle_input():
+    c = list(map(int, input("Enter a vector of coefficients of objective function in one line separated be spaces:\n").split()))
+    c = transpose([c])
+    n = int(input("Enter number of constraints:\n"))
+    A = []
+    for i in range(n):
+        a = list(map(int, input(f'Enter coefficients of {i+1} constraint in one line separated by spaces:\n').split()))
+        A.append(a)
+    s = input("Do you want to set initial starting point by yourself? (y/n) \n")
+    x_0 = []
+    if s == "y":
+        x_0 = list(map(int, input("Enter initial starting point:\n").split()))
+    b = list(map(int, input("Enter a vector of right-hand side numbers in one line separated by spaces:\n").split()))
+    if len(b) != len(A):
+        raise ValueError("Matrix A's size must match b's size:\n")
+
+    epsilon = float(input("Set approximation accuracy:\n"))
+
+    if s == "n":
+        x_0 = set_initial_solution(A, b)
+    b = transpose([b])
+    return c, A, x_0, b, epsilon
 def set_initial_solution(A, b):
     x = [0] * len(A[0])
     for i in range(len(A[0]) - len(b)):
