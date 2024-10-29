@@ -107,6 +107,77 @@ def check_feasibility(A, x, b):
             return False
     return True
 
+def interior_point_algorithm(c, A, b, x, alpha, epsilon):
+    if matrix_multiply(A, x) == b or check_feasibility(A, x, b):
+        iteration = 0
+        solved = False
+        
+        while not solved and iteration < 100:
+            iteration += 1
+            print(f"Iteration {iteration}")
+            
+            # Step 1: D = diag(x)
+            x_vector = [i[0] for i in x]
+            print("x", x_vector)
+            D = diag(x_vector)
+            print("D", D)
+            # Step 2: Compute A_tilde = A * D
+            A_tilde = matrix_multiply(A, D)
+            print("A_Tilde", A_tilde)
+            # Step 3: Compute c_tilde = D * c
+            c_tilde = matrix_multiply(D, c)
+            print("c_Tilde", c_tilde)
+            # Step 4: Compute P = I - A_tilde^T * (A_tilde * A_tilde^T)^-1 * A_tilde
+            A_tilde_T = transpose(A_tilde)
+            A_tilde_A_tilde_T = matrix_multiply(A_tilde, A_tilde_T)
+            try:
+                Inv_A_tilde_A_tilde_T = inverse_matrix(A_tilde_A_tilde_T)
+            except ValueError as e:
+                print(f"Error: {e}")
+                break
+            Middle_term = matrix_multiply(A_tilde_T, Inv_A_tilde_A_tilde_T)
+            Middle_term = matrix_multiply(Middle_term, A_tilde)
+            P = matrix_difference(identity(len(x_vector)), Middle_term)
+            print("P", P)
+            # Step 5: Compute c_p = P * c_tilde
+            c_p = matrix_multiply(P, c_tilde)
+            print("c_p", c_p)
+            # Step 6: Compute v = |min{c_p_i | c_p_i < 0}|
+            cp_flat = [i[0] for i in c_p]
+            negative_c_p = [cpi for cpi in cp_flat if cpi < 0]
+            if negative_c_p:
+                v = abs(min(negative_c_p))
+            else:
+                print("The method is not applicable!")
+                break
+            # Step 7: Compute x_tilde_new = ones(n, 1) + (alpha / v) * c_p
+            scaled_cp = multiply_by_num(alpha / v, c_p)
+            ones_matrix = ones(len(c_p), 1)
+            x_tilde_new = matrix_sum(ones_matrix, scaled_cp)
+            # Step 8: Compute x_new = D * x_tilde_new
+            x_new = matrix_multiply(D, x_tilde_new)
+            # Step 9: Check convergence
+            delta = max_abs_difference(x_new, x)
+            if delta <= epsilon:
+                solved = True
+                x_star = x_new
+                print("Optimal solution found:")
+                
+                # Format the output for x_star
+                formatted_x_star = ', '.join(f'x[{i}] = {x_star[i][0]:.4f}' for i in range(len(x_star)))
+                print(f'Optimal values: {formatted_x_star}')
+                
+                # Compute objective function value
+                z = sum([c[i][0] * x_star[i][0] for i in range(len(c))])
+                print(f'Objective function value: {z:.4f}')
+                break
+            else:
+                x = x_new
+        else:
+            if not solved:
+                print("The method did not converge within the maximum number of iterations.")
+    else:
+        print("Not correct initial solution")
 
 c = [2, 3, -1, 0, 0, 0]
 c = transpose([c])
@@ -123,96 +194,12 @@ print(matrix_multiply(A, x_0))
 
 # Ensure x is a column vector
 x = [[xi] for xi in x_0]
-print(c)
-# Ensure c is a column vector
-if matrix_multiply(A, x) == b or check_feasibility(A, x, b):
-    iteration = 0
-    solved = False
-    
-    while not solved and iteration < 100:
-        iteration += 1
-        print(f"Iteration {iteration}")
-        
-        # Step 1: D = diag(x)
-        x_vector = [i[0] for i in x]
-        print("x", x_vector)
-        D = diag(x_vector)
-        print("D", D)
-        # Step 2: Compute A_tilde = A * D
-        A_tilde = matrix_multiply(A, D)
-        print("A_Tilde", A_tilde)
-        # Step 3: Compute c_tilde = D * c
-        c_tilde = matrix_multiply(D, c)
-        print("c_Tilde", c_tilde)
-        # Step 4: Compute P = I - A_tilde^T * (A_tilde * A_tilde^T)^-1 * A_tilde
-        A_tilde_T = transpose(A_tilde)
-        A_tilde_A_tilde_T = matrix_multiply(A_tilde, A_tilde_T)
-        try:
-            Inv_A_tilde_A_tilde_T = inverse_matrix(A_tilde_A_tilde_T)
-        except ValueError as e:
-            print(f"Error: {e}")
-            break
-        Middle_term = matrix_multiply(A_tilde_T, Inv_A_tilde_A_tilde_T)
-        Middle_term = matrix_multiply(Middle_term, A_tilde)
-        P = matrix_difference(identity(len(x_vector)), Middle_term)
-        print("P", P)
-        # Step 5: Compute c_p = P * c_tilde
-        c_p = matrix_multiply(P, c_tilde)
-        print("c_p", c_p)
-        # Step 6: Compute v = |min{c_p_i | c_p_i < 0}|
-        cp_flat = [i[0] for i in c_p]
-        negative_c_p = [cpi for cpi in cp_flat if cpi < 0]
-        if negative_c_p:
-            v = abs(min(negative_c_p))
-        else:
-            print("The method is not applicable!")
-            break
-        # Step 7: Compute x_tilde_new = ones(n, 1) + (alpha / v) * c_p
-        scaled_cp = multiply_by_num(alpha / v, c_p)
-        ones_matrix = ones(len(c_p), 1)
-        x_tilde_new = matrix_sum(ones_matrix, scaled_cp)
-        # Step 8: Compute x_new = D * x_tilde_new
-        x_new = matrix_multiply(D, x_tilde_new)
-        # Step 9: Check convergence
-        delta = max_abs_difference(x_new, x)
-        if delta <= epsilon:
-            solved = True
-            x_star = x_new
-            print("Optimal solution found:")
-            
-            # Format the output for x_star
-            formatted_x_star = ', '.join(f'x[{i}] = {x_star[i][0]:.4f}' for i in range(len(x_star)))
-            print(f'Optimal values: {formatted_x_star}')
-            
-            # Compute objective function value
-            z = sum([c[i][0] * x_star[i][0] for i in range(len(c))])
-            print(f'Objective function value: {z:.4f}')
-            break
-        else:
-            x = x_new
-    else:
-        if not solved:
-            print("The method did not converge within the maximum number of iterations.")
-else:
-    print("Not correct initial solution")
 
-# if (A * x_0 == b) or (max(abs(A * x_0 - b)) <= 0.00001
-# start solve
-#   x = x_0
-#   solved = False
-#   while solved == False:
-#       D = diag(x)
-#       A_telda = A * D
-#       c_telda = D * c
-#       P = eye(n) - A_telda' * (A_telda * A_telda')^(-1) * A_telda
-#       P = eye(length(P)) - P
-#       c_p = P * c-telda
-#       v = abs(min(c_p(c_p < 0))) - choose minimal negative number from c_p and convert it to positive
-#       x_telda = ones(length(c_p), 1) + (alpha_/v) * c_p
-#       x_start = D * x_telda
-#       if max(abs(x_telda - x_star)) <= 0.00001:
-#           solved = True
-#           print(x_star)
-#       x = x_star
-# else
-#   print("Not correct initial solution")
+# Run minimization
+print("\nMinimizing function:")
+interior_point_algorithm(c, A, b, x_0, alpha, epsilon)
+
+# Run maximization (minimizing negative function)
+print("\nMaximizing function:")
+c_max = multiply_by_num(-1, c)
+interior_point_algorithm(c_max, A, b, x_0, alpha, epsilon)
