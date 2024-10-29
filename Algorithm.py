@@ -100,22 +100,59 @@ def max_abs_difference(x_new, x_old):
 def check_feasibility(A, x, b):
     Ax = matrix_multiply(A, x)
     for i in range(len(Ax)):
-        if abs(Ax[i][0] - b[i][0]) > 1e-6:
+        if abs(Ax[i][0] - b[i][0]) > 0.0001:
             return False
     for xi in x:
         if xi[0] <= 0:
             return False
     return True
 
-def interior_point_algorithm(c, A, b, x, alpha, epsilon):
+
+def set_initial_solution(A, b):
+    x = [0] * len(A[0])
+    for i in range(len(A[0]) - len(b)):
+        x[i] = 1
+    j = len(A[0]) - len(b)
+    for i in range(len(A)):
+        x[j + i] = b[i] - sum(A[i]) + 1
+    return x
+
+def handle_input():
+    c = list(map(int, input("Enter a vector of coefficients of objective function in one line separated be spaces:\n").split()))
+    c = transpose([c])
+    n = int(input("Enter number of constraints:\n"))
+    A = []
+    for i in range(n):
+        a = list(map(int, input(f'Enter coefficients of {i+1} constraint in one line separated by spaces:\n').split()))
+        A.append(a)
+    s = input("Do you want to set initial starting point by yourself? (y/n) \n")
+    x_0 = []
+    if s == "y":
+        x_0 = list(map(int, input("Enter initial starting point:\n").split()))
+    b = list(map(int, input("Enter a vector of right-hand side numbers in one line separated by spaces:\n").split()))
+    if len(b) != len(A):
+        raise ValueError("Matrix A's size must match b's size:\n")
+
+    epsilon = float(input("Set approximation accuracy:\n"))
+
+    if s == "n":
+        x_0 = set_initial_solution(A, b)
+    b = transpose([b])
+    return c, A, x_0, b, epsilon
+
+
+def interior_point(c, A, x_0, b, epsilon, alpha, max):
+    # Ensure x is a column vector
+    x = [[xi] for xi in x_0]
+    # Ensure c is a column vector
     if matrix_multiply(A, x) == b or check_feasibility(A, x, b):
         iteration = 0
         solved = False
-        
+
         while not solved and iteration < 100:
             iteration += 1
             print(f"Iteration {iteration}")
-            
+
             # Step 1: D = diag(x)
             x_vector = [i[0] for i in x]
             print("x", x_vector)
@@ -162,14 +199,17 @@ def interior_point_algorithm(c, A, b, x, alpha, epsilon):
                 solved = True
                 x_star = x_new
                 print("Optimal solution found:")
-                
+
                 # Format the output for x_star
                 formatted_x_star = ', '.join(f'x[{i}] = {x_star[i][0]:.4f}' for i in range(len(x_star)))
                 print(f'Optimal values: {formatted_x_star}')
-                
+
                 # Compute objective function value
                 z = sum([c[i][0] * x_star[i][0] for i in range(len(c))])
-                print(f'Objective function value: {z:.4f}')
+                if max:
+                    print(f'Objective function value: {-z:.4f}')
+                else:
+                    print(f'Objective function value: {z:.4f}')
                 break
             else:
                 x = x_new
@@ -179,27 +219,23 @@ def interior_point_algorithm(c, A, b, x, alpha, epsilon):
     else:
         print("Not correct initial solution")
 
-c = [2, 3, -1, 0, 0, 0]
-c = transpose([c])
-A = [[2, 1, -2, 1, 0, 0], [3, 2, 1, 0, 1, 0], [-1, 3, 4, 0, 0, 1]]
-b = [16, 18, 24]
-b = transpose([b])
-x_0 = [1, 1, 1, 17, 174, 169]
-# x_0 = [-9, 6, 10, 0]
-alpha = 0.5
-epsilon = 0.00001  # Approximation accuracy
 
-print(c, A, b, transpose([x_0]), alpha)
-print(matrix_multiply(A, x_0))
+if __name__ == "__main__":
+    c, A, x_0, b, epsilon = handle_input()
+    c_max = multiply_by_num(-1, c)
+    
+    print("Interior point with alpha = 0.5")
+    
+    print("\Minimizing function:")
+    interior_point(c, A, x_0, b, epsilon, 0.5, max=False)
+    
+    print("\Maximizing function:")
+    interior_point(c_max, A, x_0, b, epsilon, 0.5, max=True)
 
-# Ensure x is a column vector
-x = [[xi] for xi in x_0]
-
-# Run minimization
-print("\nMinimizing function:")
-interior_point_algorithm(c, A, b, x_0, alpha, epsilon)
-
-# Run maximization (minimizing negative function)
-print("\nMaximizing function:")
-c_max = multiply_by_num(-1, c)
-interior_point_algorithm(c_max, A, b, x_0, alpha, epsilon)
+    print("Interior point with alpha = 0.9")
+    
+    print("\Minimizing function:")
+    interior_point(c, A, x_0, b, epsilon, 0.9, max=False)
+    
+    print("\Maximizing function:")
+    interior_point(c_max, A, x_0, b, epsilon, 0.9, max=True)
