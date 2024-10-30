@@ -117,7 +117,7 @@ def set_initial_solution(A, b):
 
 def handle_input():
     c = list(map(int, input(
-        "Enter a vector of coefficients of objective function in one line separated be spaces:\n").split()))
+        "Enter a vector of coefficients of objective function in one line separated by spaces:\n").split()))
     c = transpose([c])
     n = int(input("Enter number of constraints:\n"))
     A = []
@@ -135,7 +135,11 @@ def handle_input():
 
     epsilon = float(input("Set approximation accuracy:\n"))
 
-    maximization = bool(input("Do you want to maximize the objective function? (y/n) "))
+    maximization = input("Do you want to maximize the objective function? (y/n) ")
+    if maximization == "y":
+        maximization = True
+    else:
+        maximization = False
     if s == "n":
         x_0 = set_initial_solution(A, b)
     b = transpose([b])
