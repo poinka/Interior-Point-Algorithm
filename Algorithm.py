@@ -24,10 +24,6 @@ def matrix_multiply(A, B):
             for k in range(cols_A):
                 result[i][j] += A[i][k] * B[k][j]
 
-    # If the result is a matrix with one column, flatten it to a vector
-    # if cols_B == 1:
-    #     result = [result[i][0] for i in range(rows_A)]
-
     return result
 
 
@@ -101,7 +97,6 @@ def check_feasibility(A, x, b):
     Ax = matrix_multiply(A, x)
     for i in range(len(Ax)):
         if abs(Ax[i][0] - b[i][0]) > 0.0001:
-        if abs(Ax[i][0] - b[i][0]) > 0.0001:
             return False
     for xi in x:
         if xi[0] <= 0:
@@ -116,15 +111,19 @@ def set_initial_solution(A, b):
     j = len(A[0]) - len(b)
     for i in range(len(A)):
         x[j + i] = b[i] - sum(A[i]) + 1
+    print(x)
     return x
 
+
 def handle_input():
-    c = list(map(int, input("Enter a vector of coefficients of objective function in one line separated be spaces:\n").split()))
+    c = list(map(int, input(
+        "Enter a vector of coefficients of objective function in one line separated be spaces:\n").split()))
     c = transpose([c])
     n = int(input("Enter number of constraints:\n"))
     A = []
     for i in range(n):
-        a = list(map(int, input(f'Enter coefficients of {i+1} constraint in one line separated by spaces:\n').split()))
+        a = list(
+            map(int, input(f'Enter coefficients of {i + 1} constraint in one line separated by spaces:\n').split()))
         A.append(a)
     s = input("Do you want to set initial starting point by yourself? (y/n) \n")
     x_0 = []
@@ -136,41 +135,11 @@ def handle_input():
 
     epsilon = float(input("Set approximation accuracy:\n"))
 
+    maximization = bool(input("Do you want to maximize the objective function? (y/n) "))
     if s == "n":
         x_0 = set_initial_solution(A, b)
     b = transpose([b])
-    return c, A, x_0, b, epsilon
-def set_initial_solution(A, b):
-    x = [0] * len(A[0])
-    for i in range(len(A[0]) - len(b)):
-        x[i] = 1
-    j = len(A[0]) - len(b)
-    for i in range(len(A)):
-        x[j + i] = b[i] - sum(A[i]) + 1
-    return x
-
-def handle_input():
-    c = list(map(int, input("Enter a vector of coefficients of objective function in one line separated be spaces:\n").split()))
-    c = transpose([c])
-    n = int(input("Enter number of constraints:\n"))
-    A = []
-    for i in range(n):
-        a = list(map(int, input(f'Enter coefficients of {i+1} constraint in one line separated by spaces:\n').split()))
-        A.append(a)
-    s = input("Do you want to set initial starting point by yourself? (y/n) \n")
-    x_0 = []
-    if s == "y":
-        x_0 = list(map(int, input("Enter initial starting point:\n").split()))
-    b = list(map(int, input("Enter a vector of right-hand side numbers in one line separated by spaces:\n").split()))
-    if len(b) != len(A):
-        raise ValueError("Matrix A's size must match b's size:\n")
-
-    epsilon = float(input("Set approximation accuracy:\n"))
-
-    if s == "n":
-        x_0 = set_initial_solution(A, b)
-    b = transpose([b])
-    return c, A, x_0, b, epsilon
+    return c, A, x_0, b, epsilon, maximization
 
 
 def interior_point(c, A, x_0, b, epsilon, alpha, max):
@@ -183,19 +152,19 @@ def interior_point(c, A, x_0, b, epsilon, alpha, max):
 
         while not solved and iteration < 100:
             iteration += 1
-            print(f"Iteration {iteration}")
+            #print(f"Iteration {iteration}")
 
             # Step 1: D = diag(x)
             x_vector = [i[0] for i in x]
-            print("x", x_vector)
+            #print("x", x_vector)
             D = diag(x_vector)
-            print("D", D)
+            #print("D", D)
             # Step 2: Compute A_tilde = A * D
             A_tilde = matrix_multiply(A, D)
-            print("A_Tilde", A_tilde)
+            #print("A_Tilde", A_tilde)
             # Step 3: Compute c_tilde = D * c
             c_tilde = matrix_multiply(D, c)
-            print("c_Tilde", c_tilde)
+            #print("c_Tilde", c_tilde)
             # Step 4: Compute P = I - A_tilde^T * (A_tilde * A_tilde^T)^-1 * A_tilde
             A_tilde_T = transpose(A_tilde)
             A_tilde_A_tilde_T = matrix_multiply(A_tilde, A_tilde_T)
@@ -207,10 +176,10 @@ def interior_point(c, A, x_0, b, epsilon, alpha, max):
             Middle_term = matrix_multiply(A_tilde_T, Inv_A_tilde_A_tilde_T)
             Middle_term = matrix_multiply(Middle_term, A_tilde)
             P = matrix_difference(identity(len(x_vector)), Middle_term)
-            print("P", P)
+            #print("P", P)
             # Step 5: Compute c_p = P * c_tilde
             c_p = matrix_multiply(P, c_tilde)
-            print("c_p", c_p)
+            #print("c_p", c_p)
             # Step 6: Compute v = |min{c_p_i | c_p_i < 0}|
             cp_flat = [i[0] for i in c_p]
             negative_c_p = [cpi for cpi in cp_flat if cpi < 0]
@@ -253,21 +222,23 @@ def interior_point(c, A, x_0, b, epsilon, alpha, max):
 
 
 if __name__ == "__main__":
-    c, A, x_0, b, epsilon = handle_input()
+    c, A, x_0, b, epsilon, maximization = handle_input()
     c_max = multiply_by_num(-1, c)
-    
+
     print("Interior point with alpha = 0.5")
-    
-    print("\Minimizing function:")
-    interior_point(c, A, x_0, b, epsilon, 0.5, max=False)
-    
-    print("\Maximizing function:")
-    interior_point(c_max, A, x_0, b, epsilon, 0.5, max=True)
+
+    if maximization:
+        print("Maximizing function:")
+        interior_point(c_max, A, x_0, b, epsilon, 0.5, max=True)
+    else:
+        print("Minimizing function:")
+        interior_point(c, A, x_0, b, epsilon, 0.5, max=False)
 
     print("Interior point with alpha = 0.9")
-    
-    print("\Minimizing function:")
-    interior_point(c, A, x_0, b, epsilon, 0.9, max=False)
-    
-    print("\Maximizing function:")
-    interior_point(c_max, A, x_0, b, epsilon, 0.9, max=True)
+
+    if maximization:
+        print("Maximizing function:")
+        interior_point(c_max, A, x_0, b, epsilon, 0.9, max=True)
+    else:
+        print("Minimizing function:")
+        interior_point(c, A, x_0, b, epsilon, 0.9, max=False)
