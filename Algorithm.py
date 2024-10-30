@@ -110,7 +110,7 @@ def set_initial_solution(A, b):
         x[i] = 1
     j = len(A[0]) - len(b)
     for i in range(len(A)):
-        x[j + i] = b[i] - sum(A[i]) + 1
+        x[j + i] = (b[i] - sum(A[i][:i+j]))//A[i][i+j]
     #print(x)
     return x
 
@@ -246,3 +246,4 @@ if __name__ == "__main__":
     else:
         print("\nMinimizing function:")
         interior_point(c, A, x_0, b, epsilon, 0.9, max=False)
+    print(set_initial_solution([[2, 4, 1, 0], [1, 3, 0, -1]], [16, 9]))
