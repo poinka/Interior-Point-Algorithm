@@ -111,7 +111,7 @@ def set_initial_solution(A, b):
     j = len(A[0]) - len(b)
     for i in range(len(A)):
         x[j + i] = (b[i] - sum(A[i][:i+j]))//A[i][i+j]
-    #print(x)
+    print(x)
     return x
 
 
@@ -212,9 +212,9 @@ def interior_point(c, A, x_0, b, epsilon, alpha, max):
                 # Compute objective function value
                 z = sum([c[i][0] * x_star[i][0] for i in range(len(c))])
                 if max:
-                    print(f'Objective function value: {-z:.4f}')
-                else:
                     print(f'Objective function value: {z:.4f}')
+                else:
+                    print(f'Objective function value: {-z:.4f}')
                 break
             else:
                 x = x_new
@@ -227,23 +227,29 @@ def interior_point(c, A, x_0, b, epsilon, alpha, max):
 
 if __name__ == "__main__":
     c, A, x_0, b, epsilon, maximization = handle_input()
-    c_max = multiply_by_num(-1, c)
-
+    # A = [[18, 15, 12, 1, 0, 0], [6, 4, 8, 0, 1, 0], [5, 3, 3, 0, 0, 1]]
+    # c = [[9], [10], [16], [0], [0], [0]]
+    # b = [360, 192, 180]
+    # epsilon = 0.00001
+    # maximization = True
+    # x_0 = set_initial_solution(A, b)
+    c_min = multiply_by_num(-1, c)
+    # b = transpose([b])
     print("\nInterior point with alpha = 0.5")
 
     if maximization:
         print("\nMaximizing function:")
-        interior_point(c_max, A, x_0, b, epsilon, 0.5, max=True)
+        interior_point(c, A, x_0, b, epsilon, 0.5, max=True)
     else:
         print("\nMinimizing function:")
-        interior_point(c, A, x_0, b, epsilon, 0.5, max=False)
+        interior_point(c_min, A, x_0, b, epsilon, 0.5, max=False)
 
     print("\nInterior point with alpha = 0.9")
 
     if maximization:
         print("\nMaximizing function:")
-        interior_point(c_max, A, x_0, b, epsilon, 0.9, max=True)
+        interior_point(c, A, x_0, b, epsilon, 0.9, max=True)
     else:
         print("\nMinimizing function:")
-        interior_point(c, A, x_0, b, epsilon, 0.9, max=False)
-    print(set_initial_solution([[2, 4, 1, 0], [1, 3, 0, -1]], [16, 9]))
+        interior_point(c_min, A, x_0, b, epsilon, 0.9, max=False)
+
