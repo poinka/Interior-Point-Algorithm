@@ -111,7 +111,7 @@ def set_initial_solution(A, b):
     j = len(A[0]) - len(b)
     for i in range(len(A)):
         x[j + i] = b[i] - sum(A[i]) + 1
-    print(x)
+    #print(x)
     return x
 
 
@@ -225,20 +225,20 @@ if __name__ == "__main__":
     c, A, x_0, b, epsilon, maximization = handle_input()
     c_max = multiply_by_num(-1, c)
 
-    print("Interior point with alpha = 0.5")
+    print("\nInterior point with alpha = 0.5")
 
     if maximization:
-        print("Maximizing function:")
+        print("\nMaximizing function:")
         interior_point(c_max, A, x_0, b, epsilon, 0.5, max=True)
     else:
-        print("Minimizing function:")
+        print("\nMinimizing function:")
         interior_point(c, A, x_0, b, epsilon, 0.5, max=False)
 
-    print("Interior point with alpha = 0.9")
+    print("\nInterior point with alpha = 0.9")
 
     if maximization:
-        print("Maximizing function:")
+        print("\nMaximizing function:")
         interior_point(c_max, A, x_0, b, epsilon, 0.9, max=True)
     else:
-        print("Minimizing function:")
+        print("\nMinimizing function:")
         interior_point(c, A, x_0, b, epsilon, 0.9, max=False)
