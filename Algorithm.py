@@ -111,7 +111,7 @@ def set_initial_solution(A, b):
     j = len(A[0]) - len(b)
     for i in range(len(A)):
         x[j + i] = (b[i] - sum(A[i][:i+j]))//A[i][i+j]
-    print(x)
+    # print(x)
     return x
 
 
